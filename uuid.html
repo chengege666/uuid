@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID 生成器 | 小公举实用工具</title>
+    <style>
+        /* 清新简约的样式，贴合小公举风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(230, 230, 250, 0.5);
+            border: 1px solid #f0f4ff;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .uuid-result {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e8f4f8;
+            border-radius: 8px;
+            background-color: #f0f8fb;
+            color: #333;
+            font-size: 16px;
+            margin: 20px 0;
+            word-break: break-all;
+            min-height: 60px;
+            /* 新增：让子元素可以用flex布局 */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        /* 新增：批量UUID项的样式，实现对齐 */
+        .uuid-item {
+            display: flex;
+            align-items: flex-start;
+        }
+        /* 新增：编号固定宽度，实现对齐 */
+        .uuid-index {
+            width: 30px;
+            flex-shrink: 0;
+            color: #667eea;
+            font-weight: 500;
+        }
+        /* 新增：UUID内容区域 */
+        .uuid-content {
+            flex: 1;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #667eea;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #5a67d8;
+        }
+        .batch-setting {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .batch-setting input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #e8f4f8;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .tip {
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ UUID 生成器</h1>
+        
+        <!-- 批量生成设置 -->
+        <div class="batch-setting">
+            <span>批量生成数量：</span>
+            <input type="number" id="batchNum" value="1" min="1" max="20">
+            <button id="batchGenerateBtn">批量生成</button>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="btn-group">
+            <button id="generateBtn">生成 UUID</button>
+            <button id="copyBtn">复制到剪贴板</button>
+            <button id="clearBtn">清空结果</button>
+        </div>
+
+        <!-- UUID 结果展示 -->
+        <div id="uuidResult" class="uuid-result"></div>
+        
+        <div class="tip">生成的 UUID 符合 RFC4122 标准，可直接用于项目开发</div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const batchGenerateBtn = document.getElementById('batchGenerateBtn');
+        const batchNumInput = document.getElementById('batchNum');
+        const uuidResult = document.getElementById('uuidResult');
+
+        // 核心函数：生成标准 UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // 生成单个 UUID
+        generateBtn.addEventListener('click', () => {
+            // 单个UUID恢复为简洁文本展示
+            uuidResult.innerHTML = `<div class="uuid-item"><div class="uuid-content">${generateUUID()}</div></div>`;
+        });
+
+        // 批量生成 UUID（核心修改：结构化展示实现对齐）
+        batchGenerateBtn.addEventListener('click', () => {
+            const num = parseInt(batchNumInput.value) || 1;
+            if (num < 1) return alert('数量不能小于1');
+            if (num > 20) return alert('最多支持批量生成20个');
+            
+            let uuidHtml = '';
+            for (let i = 0; i < num; i++) {
+                // 拼接结构化的HTML元素，编号和内容分开
+                uuidHtml += `
+                    <div class="uuid-item">
+                        <div class="uuid-index">${i+1}.</div>
+                        <div class="uuid-content">${generateUUID()}</div>
+                    </div>
+                `;
+            }
+            uuidResult.innerHTML = uuidHtml;
+        });
+
+        // 复制到剪贴板（适配新的HTML结构）
+        copyBtn.addEventListener('click', async () => {
+            // 提取所有UUID文本，保持原有格式
+            const items = uuidResult.querySelectorAll('.uuid-item');
+            if (items.length === 0) return alert('暂无UUID可复制');
+            
+            let text = '';
+            items.forEach(item => {
+                const index = item.querySelector('.uuid-index')?.textContent || '';
+                const content = item.querySelector('.uuid-content')?.textContent || '';
+                text += `${index} ${content}\n`;
+            });
+            text = text.trim(); // 去除最后一个换行
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('✅ 复制成功！');
+            } catch (err) {
+                alert('❌ 复制失败，请手动复制');
+                console.error('复制失败：', err);
+            }
+        });
+
+        // 清空结果
+        clearBtn.addEventListener('click', () => {
+            uuidResult.innerHTML = '';
+        });
+
+        // 页面加载时自动生成一个 UUID
+        window.onload = () => {
+            uuidResult.innerHTML = `<div class="uuid-item"><div class="uuid-content">${generateUUID()}</div></div>`;
+        };
+    </script>
+</body>
+</html>
