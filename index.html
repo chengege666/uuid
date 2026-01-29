@@ -118,6 +118,7 @@
         <div class="btn-group">
             <button id="generateBtn">生成 UUID</button>
             <button id="copyBtn">复制到剪贴板</button>
+            <button id="randomCopyBtn" style="display: none;">随机复制一个</button>
             <button id="clearBtn">清空结果</button>
         </div>
 
@@ -132,6 +133,7 @@
         const generateBtn = document.getElementById('generateBtn');
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const randomCopyBtn = document.getElementById('randomCopyBtn'); // 新增：随机复制按钮
         const batchGenerateBtn = document.getElementById('batchGenerateBtn');
         const batchNumInput = document.getElementById('batchNum');
         const uuidResult = document.getElementById('uuidResult');
@@ -149,6 +151,8 @@
         generateBtn.addEventListener('click', () => {
             // 单个UUID恢复为简洁文本展示
             uuidResult.innerHTML = `<div class="uuid-item"><div class="uuid-content">${generateUUID()}</div></div>`;
+            // 单个生成时隐藏随机复制按钮
+            randomCopyBtn.style.display = 'none';
         });
 
         // 批量生成 UUID（核心修改：结构化展示实现对齐）
@@ -168,9 +172,11 @@
                 `;
             }
             uuidResult.innerHTML = uuidHtml;
+            // 批量生成时显示随机复制按钮
+            randomCopyBtn.style.display = 'block';
         });
 
-        // 复制到剪贴板（适配新的HTML结构）
+        // 复制全部到剪贴板（适配新的HTML结构）
         copyBtn.addEventListener('click', async () => {
             // 提取所有UUID文本，保持原有格式
             const items = uuidResult.querySelectorAll('.uuid-item');
@@ -193,14 +199,37 @@
             }
         });
 
+        // 新增：随机复制一个UUID（仅批量生成时可用）
+        randomCopyBtn.addEventListener('click', async () => {
+            const items = uuidResult.querySelectorAll('.uuid-item');
+            if (items.length === 0) return alert('暂无UUID可复制');
+            
+            // 随机选择一个UUID
+            const randomIdx = Math.floor(Math.random() * items.length);
+            const targetItem = items[randomIdx];
+            const targetUUID = targetItem.querySelector('.uuid-content').textContent.trim();
+            
+            try {
+                await navigator.clipboard.writeText(targetUUID);
+                alert(`✅ 已随机复制：\n${targetUUID}`);
+            } catch (err) {
+                alert('❌ 复制失败，请手动复制');
+                console.error('随机复制失败：', err);
+            }
+        });
+
         // 清空结果
         clearBtn.addEventListener('click', () => {
             uuidResult.innerHTML = '';
+            // 清空后隐藏随机复制按钮
+            randomCopyBtn.style.display = 'none';
         });
 
         // 页面加载时自动生成一个 UUID
         window.onload = () => {
             uuidResult.innerHTML = `<div class="uuid-item"><div class="uuid-content">${generateUUID()}</div></div>`;
+            // 初始隐藏随机复制按钮
+            randomCopyBtn.style.display = 'none';
         };
     </script>
 </body>
